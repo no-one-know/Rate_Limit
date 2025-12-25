@@ -1,12 +1,12 @@
 redis:
   host: 0.0.0.0
   port: 6379
-  timeout: 2000ms
+  timeout: 15000ms
   jedis:
     pool:
-      max-active: 8
-      max-idle: 8
-      min-idle: 0
+      max-active: 16
+      max-idle: 16
+      min-idle: 2
 
 rate-limiter:
   enabled: true

@@ -21,4 +21,16 @@ public class RedisConfigurationProperties {
     public Duration getTimeout() {
         return this.timeout;
     }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setTimeout(Duration timeout) {
+        this.timeout = timeout;
+    }
 }
