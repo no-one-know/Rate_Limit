@@ -9,20 +9,21 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.util.List;
 
 @Configuration
-@EnableConfigurationProperties(RateLimiterProperties.class)
+@EnableConfigurationProperties({
+        RateLimiterProperties.class,
+        RedisConfigurationProperties.class,
+        RedisPoolProperties.class
+})
 public class RateLimiterConfiguration {
 
     @Bean
-    public JedisPool jedisPool() {
+    public JedisPool jedisPool(RedisConfigurationProperties redisConfigurationProperties, RedisPoolProperties redisPoolProperties) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(8);
-        poolConfig.setMaxIdle(8);
-        poolConfig.setMinIdle(0);
-        poolConfig.setTestOnBorrow(true);
-        poolConfig.setTestOnReturn(true);
-        poolConfig.setTestWhileIdle(true);
-
-        return new JedisPool(poolConfig, "localhost", 6379);
+        poolConfig.setMaxTotal(redisPoolProperties.getMaxTotal());
+        poolConfig.setMaxIdle(redisPoolProperties.getMaxIdle());
+        poolConfig.setMinIdle(redisPoolProperties.getMinIdle());
+        poolConfig.setMaxWait(redisConfigurationProperties.getTimeout());
+        return new JedisPool(poolConfig, redisConfigurationProperties.getHost(), redisConfigurationProperties.getPort());
     }
 
     @Bean
