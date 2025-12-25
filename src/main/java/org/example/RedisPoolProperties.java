@@ -2,7 +2,7 @@ package org.example;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "redis.jedis.pool")
+@ConfigurationProperties(prefix = "redis.lettuce.pool")
 public class RedisPoolProperties {
     private int maxTotal;
     private int maxIdle;

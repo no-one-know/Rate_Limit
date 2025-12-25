@@ -1,10 +1,10 @@
 package org.example;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.List;
 
@@ -17,18 +17,18 @@ import java.util.List;
 public class RateLimiterConfiguration {
 
     @Bean
-    public JedisPool jedisPool(RedisConfigurationProperties redisConfigurationProperties, RedisPoolProperties redisPoolProperties) {
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(redisPoolProperties.getMaxTotal());
-        poolConfig.setMaxIdle(redisPoolProperties.getMaxIdle());
-        poolConfig.setMinIdle(redisPoolProperties.getMinIdle());
-        poolConfig.setMaxWait(redisConfigurationProperties.getTimeout());
-        return new JedisPool(poolConfig, redisConfigurationProperties.getHost(), redisConfigurationProperties.getPort());
+    public RedisClient redisClient(RedisConfigurationProperties redisConfigurationProperties) {
+        return RedisClient.create("redis://" + redisConfigurationProperties.getHost() + ":" + redisConfigurationProperties.getPort());
     }
 
     @Bean
-    public RedisRateLimiter redisRateLimiter(JedisPool jedisPool) {
-        return new RedisRateLimiterImpl(jedisPool);
+    public StatefulRedisConnection<String, String> statefulRedisConnection(RedisClient redisClient) {
+        return redisClient.connect();
+    }
+
+    @Bean
+    public RedisRateLimiter redisRateLimiter(StatefulRedisConnection<String, String> connection) {
+        return new RedisRateLimiterImpl(connection);
     }
 
     @Bean
