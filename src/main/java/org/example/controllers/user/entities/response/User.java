@@ -1,4 +1,4 @@
-package org.example;
+package org.example.controllers.user.entities.response;
 
 import java.util.UUID;
 

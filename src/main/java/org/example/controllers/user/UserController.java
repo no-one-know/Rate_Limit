@@ -1,5 +1,6 @@
-package org.example;
+package org.example.controllers.user;
 
+import org.example.controllers.user.entities.response.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

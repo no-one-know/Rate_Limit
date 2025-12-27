@@ -23,7 +23,8 @@ public class RedisRateLimiterImpl implements RedisRateLimiter {
     @Override
     public RateLimitResult execute(
             String redisKey,
-            RateLimitConfig config,
+            int capacity,
+            int refillRate,
             long timestampSeconds
     ) {
         RedisCommands<String, String> commands = connection.sync();
@@ -32,8 +33,8 @@ public class RedisRateLimiterImpl implements RedisRateLimiter {
                 scriptSha,
                 io.lettuce.core.ScriptOutputType.MULTI,
                 new String[]{redisKey},
-                String.valueOf(config.getCapacity()),
-                String.valueOf(config.getRefillRate()),
+                String.valueOf(capacity),
+                String.valueOf(refillRate),
                 String.valueOf(timestampSeconds),
                 "1",
                 String.valueOf(DEFAULT_TTL_SECONDS)

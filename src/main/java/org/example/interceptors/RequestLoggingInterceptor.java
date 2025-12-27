@@ -1,4 +1,4 @@
-package org.example;
+package org.example.interceptors;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 
 @Component
-public class RequestLoggingFilter implements Filter {
+public class RequestLoggingInterceptor implements Filter {
 
     private static final Logger log =
-            LoggerFactory.getLogger(RequestLoggingFilter.class);
+            LoggerFactory.getLogger(RequestLoggingInterceptor.class);
 
     @Override
     public void doFilter(

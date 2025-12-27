@@ -1,5 +1,5 @@
 package org.example;
 
 public interface RateLimiter {
-    public RateLimitResult allow(RequestContext requestContext);
+    public RateLimitResult checkRateLimit(String redisKey, int capacity, int refillRate);
 }

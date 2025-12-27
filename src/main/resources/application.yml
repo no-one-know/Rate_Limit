@@ -2,28 +2,28 @@ redis:
   host: 0.0.0.0
   port: 6379
   timeout: 15000ms
-  jedis:
-    pool:
-      max-active: 16
-      max-idle: 16
-      min-idle: 2
 
 rate-limiter:
   enabled: true
   failure-mode: FAIL_OPEN
 
-  strategies:
-    ip:
-      enabled: false
-      capacity: 50
-      refill-rate: 5
+  endpoints:
+    - method: POST
+      path: /users
 
-    api:
-      enabled: true
-      capacity: 1000
-      refill-rate: 300
+      primary:
+        capacity: 100
+        refill-rate: 10
 
-    api-key:
-      enabled: false
-      capacity: 1000
-      refill-rate: 100
+    - method: GET
+      path: /users
+
+      primary:
+        capacity: 500
+        refill-rate: 50
+
+      secondary:
+        source: HEADER
+        key: uuid
+        capacity: 20
+        refill-rate: 2

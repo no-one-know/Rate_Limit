@@ -2,17 +2,19 @@ package org.example;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
+import org.example.interceptors.RequestRateLimitingInterceptor;
+import org.example.properties.RateLimiterProperties;
+import org.example.properties.RedisConfigurationProperties;
+import org.example.utils.EndpointRateLimitResolver;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-import java.util.List;
-
 @Configuration
 @EnableConfigurationProperties({
         RateLimiterProperties.class,
-        RedisConfigurationProperties.class,
-        RedisPoolProperties.class
+        RedisConfigurationProperties.class
 })
 public class RateLimiterConfiguration {
 
@@ -33,19 +35,29 @@ public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiter rateLimiter(
-            RateLimiterProperties properties,
+            RateLimiterProperties rateLimiterProperties,
             RedisRateLimiter redisRateLimiter
     ) {
-
-        List<RateLimitKeyStrategy> strategies =
-                RateLimitStrategyFactory.createStrategies(
-                        properties.getStrategies()
-                );
-
         return new RateLimiterService(
-                strategies,
                 redisRateLimiter,
-                properties.getFailureMode()
+                rateLimiterProperties.getFailureMode()
         );
+    }
+
+    @Bean
+    public FilterRegistrationBean<RequestRateLimitingInterceptor> rateLimitingFilter(
+            RateLimiter rateLimiter,
+            RateLimiterProperties rateLimiterProperties,
+            EndpointRateLimitResolver endpointRateLimitResolver
+    ) {
+
+        FilterRegistrationBean<RequestRateLimitingInterceptor> registration =
+                new FilterRegistrationBean<>();
+
+        registration.setFilter(new RequestRateLimitingInterceptor(rateLimiter, rateLimiterProperties, endpointRateLimitResolver));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(1);
+
+        return registration;
     }
 }
