@@ -1,4 +1,4 @@
-package org.example.apiresponse;
+package org.example;
 
 import java.util.UUID;
 
