@@ -20,8 +20,8 @@ rate-limiter:
 
     api:
       enabled: true
-      capacity: 400
-      refill-rate: 50
+      capacity: 1000
+      refill-rate: 300
 
     api-key:
       enabled: false
