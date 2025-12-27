@@ -3,13 +3,13 @@ package org.example;
 import java.util.UUID;
 
 public class User {
-    private String name;
-    private int age;
-    private String uuid;
+    private final String name;
+    private final int age;
+    private final String uuid;
 
     public User() {
         this.name = this.generateRandomName();
-        this.age = this.getRandomAge();
+        this.age = this.generateRandomAge();
         this.uuid = UUID.randomUUID().toString();
     }
 
@@ -19,7 +19,19 @@ public class User {
         return names[index];
     }
 
-    public int getRandomAge() {
+    public int generateRandomAge() {
         return (int) (Math.random() * 100);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getUuid() {
+        return uuid;
     }
 }

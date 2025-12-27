@@ -14,16 +14,16 @@ rate-limiter:
 
   strategies:
     ip:
-      enabled: true
+      enabled: false
       capacity: 50
       refill-rate: 5
 
     api:
       enabled: true
-      capacity: 200
-      refill-rate: 20
+      capacity: 400
+      refill-rate: 50
 
     api-key:
-      enabled: true
+      enabled: false
       capacity: 1000
       refill-rate: 100
