@@ -1,34 +1,29 @@
-package org.example;
+package org.example.algorithms;
 
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
-
+import org.example.RateLimitResult;
+import org.example.algorithms.scripts.TokenBucketLuaScript;
+import org.springframework.stereotype.Component;
 import java.util.List;
 
-public class RedisRateLimiterImpl implements RedisRateLimiter {
+@Component("token-bucket")
+public class TokenBucketAlgorithm implements RateLimitAlgorithm {
 
-    private static final int DEFAULT_TTL_SECONDS = 3600; // 1 hour
-
+    private static final int DEFAULT_TTL_SECONDS = 3600;
     private final StatefulRedisConnection<String, String> connection;
     private final String scriptSha;
 
-    public RedisRateLimiterImpl(StatefulRedisConnection<String, String> connection) {
+    public TokenBucketAlgorithm(StatefulRedisConnection<String, String> connection) {
         this.connection = connection;
         String luaScript = TokenBucketLuaScript.SCRIPT;
-
         RedisCommands<String, String> commands = connection.sync();
         this.scriptSha = commands.scriptLoad(luaScript);
     }
 
     @Override
-    public RateLimitResult execute(
-            String redisKey,
-            int capacity,
-            int refillRate,
-            long timestampSeconds
-    ) {
+    public RateLimitResult execute(String redisKey, int capacity, int refillRate, long timestampSeconds) {
         RedisCommands<String, String> commands = connection.sync();
-
         List<Long> result = commands.evalsha(
                 scriptSha,
                 io.lettuce.core.ScriptOutputType.MULTI,
@@ -39,10 +34,8 @@ public class RedisRateLimiterImpl implements RedisRateLimiter {
                 "1",
                 String.valueOf(DEFAULT_TTL_SECONDS)
         );
-
         boolean allowed = result.get(0) == 1;
         long remainingTokens = result.get(1);
-
-        return new RateLimitResult(allowed, remainingTokens);
+        return new RateLimitResult(allowed, remainingTokens); // Placeholder return value
     }
 }

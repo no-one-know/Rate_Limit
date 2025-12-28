@@ -1,15 +1,20 @@
 package org.example;
 
+import org.example.algorithms.RateLimitAlgorithm;
+import org.example.algorithms.RateLimitAlgorithmResolver;
+import org.example.properties.RateLimiterProperties;
 import org.example.properties.entities.FailureMode;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RateLimiterService implements RateLimiter {
 
-    private final RedisRateLimiter redisRateLimiter;
+    private final RateLimitAlgorithm rateLimitAlgorithm;
     private final FailureMode failureMode;
 
-    public RateLimiterService(RedisRateLimiter redisRateLimiter, FailureMode failureMode) {
-        this.redisRateLimiter = redisRateLimiter;
-        this.failureMode = failureMode;
+    public RateLimiterService(RateLimitAlgorithmResolver rateLimitAlgorithmResolver, RateLimiterProperties rateLimiterProperties) {
+        this.rateLimitAlgorithm = rateLimitAlgorithmResolver.resolve();
+        this.failureMode = rateLimiterProperties.getFailureMode();
     }
 
     @Override
@@ -18,14 +23,13 @@ public class RateLimiterService implements RateLimiter {
         long nowSeconds = System.currentTimeMillis() / 1000;
         RateLimitResult result;
         try {
-            result = redisRateLimiter.execute(
+            result = rateLimitAlgorithm.execute(
                             redisKey,
-                    capacity,
-                    refillRate,
+                            capacity,
+                            refillRate,
                             nowSeconds
                     );
         } catch (Exception ex) {
-
             if (failureMode == FailureMode.FAIL_OPEN) {
                 // Allow request if Redis is unavailable
                 return RateLimitResult.ALLOWED;

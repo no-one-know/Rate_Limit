@@ -12,6 +12,7 @@ public class RateLimiterProperties {
 
     private boolean enabled;
     private FailureMode failureMode;
+    private String algorithm;
     private List<EndpointRateLimitPolicy> endpoints = new ArrayList<>();
 
     public boolean isEnabled() {
@@ -36,5 +37,13 @@ public class RateLimiterProperties {
 
     public void setEndpoints(List<EndpointRateLimitPolicy> endpoints) {
         this.endpoints = endpoints;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
     }
 }

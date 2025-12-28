@@ -6,6 +6,7 @@ redis:
 rate-limiter:
   enabled: true
   failure-mode: FAIL_OPEN
+  algorithm: leaking-bucket
 
   endpoints:
     - method: POST

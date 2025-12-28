@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithms.scripts;
 
 public final class TokenBucketLuaScript {
 
