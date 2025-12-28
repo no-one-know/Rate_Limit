@@ -1,171 +1,73 @@
 # Rate Limit Service – High Level Design (HLD)
 
 ## 1. Introduction
+The Rate Limit Service is a Redis-backed, configurable rate-limiting system designed to protect APIs from abuse while remaining flexible, extensible, and algorithm-agnostic. It supports endpoint-level rate limits, hierarchical limits (primary and secondary), and multiple rate-limiting algorithms selectable via configuration.
 
-This document describes the **High Level Design (HLD)** of the **Rate Limit Service** built using **Java, Redis, and the Token Bucket algorithm**. The goal of this service is to protect backend APIs from abuse, smooth traffic spikes, and ensure fair usage across clients while remaining highly available and scalable.
+## 2. Goals
+- Enforce rate limits per HTTP method and path
+- Support multiple algorithms:
+  - Token Bucket
+  - Leaky Bucket
+  - Fixed Window
+  - Sliding Window
+- Support primary (API-level) and secondary (identifier-level) limits
+- Ensure atomic enforcement using Redis
+- Provide fail-open and fail-close behavior
 
-The design intentionally prioritizes:
-- Horizontal scalability
-- Low latency
-- Simplicity of reasoning
-- Operational safety
+## 3. Non-Goals
+- No UI or dashboard
+- No per-request algorithm switching
+- No persistence beyond Redis
 
-Strict financial-grade accuracy is **not** a requirement; availability and performance are preferred.
+## 4. High-Level Architecture
 
----
+Client Request  
+→ Logging Filter  
+→ Rate Limiting Filter  
+→ Endpoint Resolver  
+→ RateLimiter Service  
+→ Selected RateLimit Algorithm  
+→ Redis
 
-## 2. Problem Statement
+## 5. Key Design Decisions
+- **Opt-in rate limiting**: Only configured endpoints are limited.
+- **Algorithm pluggability**: Algorithms are isolated behind a common interface.
+- **Fail-fast validation**: Configuration errors fail at startup.
+- **Redis as source of truth**: All counters and state are stored in Redis.
 
-Modern backend systems are exposed to:
-- Excessive client requests
-- Abuse (intentional or accidental)
-- Traffic bursts
+## 6. Configuration Overview
 
-Without rate limiting:
-- Downstream services may degrade
-- Databases may become overloaded
-- Legitimate users may be impacted
+```yaml
+rate-limiter:
+  enabled: true
+  failure-mode: FAIL_OPEN
+  algorithm: sliding-window
 
-A centralized, distributed-safe rate limiting mechanism is required.
-
----
-
-## 3. Goals and Non-Goals
-
-### 3.1 Goals
-
-- Enforce request limits per client
-- Support burst traffic within bounds
-- Work correctly in distributed environments
-- Be configurable without code changes
-- Integrate transparently with HTTP APIs
-
-### 3.2 Non-Goals
-
-- Billing or monetization
-- Authentication or authorization
-- Exact-once semantics
-- Financial correctness
-
----
-
-## 4. Algorithm Choice
-
-### 4.1 Token Bucket Algorithm
-
-The Token Bucket algorithm was chosen because:
-- It allows short bursts of traffic
-- It smooths long-term request rate
-- It is widely used and well understood
-
-Each client is assigned a bucket:
-- Bucket has a maximum capacity
-- Tokens are refilled at a fixed rate
-- Each request consumes one token
-
-Requests are rejected when no tokens remain.
-
----
-
-## 5. Technology Choices
-
-### 5.1 Redis
-
-Redis is used as the centralized coordination store because:
-- It is in-memory and fast
-- It provides atomic operations
-- It supports Lua scripting
-- It is widely deployed and battle-tested
-
-### 5.2 Java
-
-Java is used for:
-- Strong typing
-- Mature ecosystem
-- Excellent Redis clients
-- Easy Spring integration
-
----
-
-## 6. Failure Model
-
-### 6.1 Fail-Open Strategy
-
-If Redis is unavailable:
-- Requests are **allowed**
-- Rate limiting is temporarily bypassed
-
-Rationale:
-- Rate limiting is a protective mechanism
-- Blocking legitimate traffic is worse than allowing excess traffic
-
----
-
-## 7. Configurability
-
-The rate limiter is configuration-driven via YAML:
-- Enable or disable the entire limiter
-- Configure per-strategy limits
-- Change limits without redeploying code
-
-Supported strategies:
-- IP-based
-- API-path-based
-- API-key-based
-- User-based (future extension)
-
----
-
-## 8. High-Level Architecture
-
-```
-Client
-  ↓
-HTTP Filter / Interceptor
-  ↓
-Rate Limiter Service (Java)
-  ↓
-Redis (Token Buckets)
+  endpoints:
+    - method: POST
+      path: /users
+      primary:
+        capacity: 100
+        time-window: 60
 ```
 
-The Rate Limiter acts as a gatekeeper before business logic is executed.
+## 7. Failure Modes
+- **FAIL_OPEN**: Allow requests if Redis fails.
+- **FAIL_CLOSE**: Reject requests if Redis fails.
 
----
+## 8. Scalability
+- Stateless application nodes
+- Horizontal scaling supported
+- Redis handles concurrency
 
-## 9. Request Flow (HLD)
+## 9. Security
+- Deterministic, namespaced Redis keys
+- No sensitive data persisted
 
-1. HTTP request arrives
-2. Request context is constructed (IP, API, API key, timestamp)
-3. Configured rate-limit strategies are evaluated
-4. Redis is consulted via Lua script
-5. Request is allowed or rejected
+## 10. Extensibility
+- Easy addition of new algorithms
+- Support for new identifier sources
+- Future per-endpoint algorithm overrides
 
----
-
-## 10. Scalability Characteristics
-
-- Java service is stateless → horizontal scaling
-- Redis handles atomicity → no coordination between instances
-- Lua scripts ensure correctness under concurrency
-
----
-
-## 11. Observability (Planned)
-
-The system is designed to support:
-- Metrics for allowed / rejected requests
-- Per-strategy visibility
-- Redis health monitoring
-
----
-
-## 12. Summary
-
-The High Level Design provides:
-- A scalable, distributed-safe rate limiting system
-- Clear separation of concerns
-- Configuration-driven behavior
-- High availability via fail-open strategy
-
-This HLD forms the foundation for the detailed Low Level Design.
-
+## 11. Summary
+The system provides a robust, production-ready rate-limiting solution with strong separation of concerns and long-term extensibility.
