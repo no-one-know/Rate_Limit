@@ -22,14 +22,14 @@ public class LeakingBucketAlgorithm implements RateLimitAlgorithm {
     }
 
     @Override
-    public RateLimitResult execute(String redisKey, int capacity, int refillRate, long timestampSeconds) {
+    public RateLimitResult execute(String redisKey, int capacity, int leakRate, long timestampSeconds) {
         RedisCommands<String, String> commands = connection.sync();
         List<Long> result = commands.evalsha(
                 scriptSha,
                 io.lettuce.core.ScriptOutputType.MULTI,
                 new String[]{redisKey},
                 String.valueOf(capacity),
-                String.valueOf(refillRate),
+                String.valueOf(leakRate),
                 String.valueOf(timestampSeconds),
                 String.valueOf(DEFAULT_TTL_SECONDS)
         );
