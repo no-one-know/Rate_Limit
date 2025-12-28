@@ -4,7 +4,6 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.*;
-import org.example.properties.entities.EndpointRateLimitPolicy;
 import org.example.properties.entities.SecondaryRateLimit;
 import org.example.properties.RateLimiterProperties;
 import org.example.utils.EndpointRateLimitResolver;
@@ -46,7 +45,7 @@ public class RequestRateLimitingInterceptor implements Filter {
         HttpMethod method = HttpMethod.valueOf(request.getMethod());
         String path = request.getRequestURI();
 
-        Optional<EndpointRateLimitPolicy> optionalPolicy =
+        Optional<ResolvedEndpointRateLimit> optionalPolicy =
                 endpointRateLimitResolver.resolve(method, path);
 
         // Endpoint not configured → no rate limiting
@@ -55,7 +54,7 @@ public class RequestRateLimitingInterceptor implements Filter {
             return;
         }
 
-        EndpointRateLimitPolicy policy = optionalPolicy.get();
+        ResolvedEndpointRateLimit policy = optionalPolicy.get();
 
         // ---------- PRIMARY LIMIT ----------
         String primaryKey = String.format(
@@ -67,8 +66,8 @@ public class RequestRateLimitingInterceptor implements Filter {
         RateLimitResult primaryResult =
                 rateLimiter.checkRateLimit(
                         primaryKey,
-                        policy.getPrimary().getCapacity(),
-                        policy.getPrimary().getRefillRate()
+                        policy.primary().capacity(),
+                        policy.primary().rateOrWindow()
                 );
 
         if (!primaryResult.isAllowed()) {
@@ -77,9 +76,9 @@ public class RequestRateLimitingInterceptor implements Filter {
         }
 
         // ---------- SECONDARY LIMIT ----------
-        if (policy.getSecondary() != null) {
+        if (policy.secondary() != null) {
 
-            SecondaryRateLimit sec = policy.getSecondary();
+            SecondaryRateLimit sec = policy.secondaryMeta();
             String identifier = extractIdentifier(request, sec);
 
             if (identifier == null || identifier.isBlank()) {
@@ -100,8 +99,8 @@ public class RequestRateLimitingInterceptor implements Filter {
             RateLimitResult secondaryResult =
                     rateLimiter.checkRateLimit(
                             secondaryKey,
-                            sec.getCapacity(),
-                            sec.getRefillRate()
+                            policy.secondary().capacity(),
+                            policy.secondary().rateOrWindow()
                     );
 
             if (!secondaryResult.isAllowed()) {

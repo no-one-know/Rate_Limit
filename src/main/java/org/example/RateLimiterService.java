@@ -18,7 +18,7 @@ public class RateLimiterService implements RateLimiter {
     }
 
     @Override
-    public RateLimitResult checkRateLimit(String redisKey, int capacity, int refillRate) {
+    public RateLimitResult checkRateLimit(String redisKey, int capacity, int rateOrTimeWindow) {
 
         long nowSeconds = System.currentTimeMillis() / 1000;
         RateLimitResult result;
@@ -26,7 +26,7 @@ public class RateLimiterService implements RateLimiter {
             result = rateLimitAlgorithm.execute(
                             redisKey,
                             capacity,
-                            refillRate,
+                    rateOrTimeWindow,
                             nowSeconds
                     );
         } catch (Exception ex) {

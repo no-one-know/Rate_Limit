@@ -3,13 +3,31 @@ package org.example.properties.entities;
 public class PrimaryRateLimit {
 
     private int capacity;
-    private int refillRate;
+    private Integer refillRate;
+    private Integer leakRate;
+    private Integer timeWindow;
+
+    public Integer getLeakRate() {
+        return leakRate;
+    }
+
+    public void setLeakRate(int leakRate) {
+        this.leakRate = leakRate;
+    }
+
+    public Integer getTimeWindow() {
+        return timeWindow;
+    }
+
+    public void setTimeWindow(int timeWindow) {
+        this.timeWindow = timeWindow;
+    }
 
     public int getCapacity() {
         return capacity;
     }
 
-    public int getRefillRate() {
+    public Integer getRefillRate() {
         return refillRate;
     }
 

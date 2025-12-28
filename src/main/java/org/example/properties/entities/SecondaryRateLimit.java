@@ -5,7 +5,25 @@ public class SecondaryRateLimit {
     private IdentifierSource source;
     private String key;
     private int capacity;
-    private int refillRate;
+    private Integer refillRate;
+    private Integer leakRate;
+    private Integer timeWindow;
+
+    public Integer getLeakRate() {
+        return leakRate;
+    }
+
+    public void setLeakRate(int leakRate) {
+        this.leakRate = leakRate;
+    }
+
+    public Integer getTimeWindow() {
+        return timeWindow;
+    }
+
+    public void setTimeWindow(int timeWindow) {
+        this.timeWindow = timeWindow;
+    }
 
     public IdentifierSource getSource() {
         return source;
@@ -19,7 +37,7 @@ public class SecondaryRateLimit {
         return capacity;
     }
 
-    public int getRefillRate() {
+    public Integer getRefillRate() {
         return refillRate;
     }
 
