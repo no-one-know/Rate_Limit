@@ -34,6 +34,14 @@ It supports **endpoint-level rate limiting**, **multiple algorithms**, and **pri
 
 ## 🏗 High-Level Architecture
 
+
+---
+
+## 🖼 Architecture & Flow Diagrams
+
+### High-Level Architecture
+![High-Level Architecture](architecture.png)
+
 ```
 Client
   → Logging Filter
